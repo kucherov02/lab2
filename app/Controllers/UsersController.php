@@ -29,9 +29,11 @@ class UsersController
        $secondName = filter_input(INPUT_POST, 'secondName', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
        $gender = filter_input(INPUT_POST, 'gender', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+       
        $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-       $id_role = filter_input(INPUT_POST, 'role', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+       $hash = password_hash($password, PASSWORD_BCRYPT);
 
+       $id_role = filter_input(INPUT_POST, 'role', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
        $target_dir = 'public/uploads/';
        $target_file = $target_dir . basename($_FILES["photo"]["name"]);
        $path_to_img = '';
@@ -40,9 +42,9 @@ class UsersController
           $path_to_img = $target_dir . basename($_FILES["photo"]["name"]);
         }
 
-       if (trim($name) !== "" && trim($secondName) !== "" && trim($email) !== "" && trim($gender) !== "" && trim($password) !== "" && trim($id_role) ) {
+       if (trim($name) !== "" && trim($secondName) !== "" && trim($email) !== "" && trim($gender) !== "" && trim($hash) !== "" && trim($id_role) ) {
            // додати користувача
-           $user = new User($name,$secondName, $email, $gender,$password, $path_to_img, $id_role);
+           $user = new User($name,$secondName, $email, $gender,$hash, $path_to_img, $id_role);
            $user->add($this->conn);
        }
        header('Location: ?controller=users');
@@ -100,5 +102,25 @@ include_once 'views/showUser.php';
 
        header('Location: ?controller=users');
     }
+
+    public function addCom(){
+        include_once 'app/Models/UserModel.php';
+
+        $auth_id = 36;
+        $rec_id = filter_input(INPUT_GET, 'rec', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $text = filter_input(INPUT_POST, 'comment', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+            if(trim($rec_id) !== "" && trim($text) !== ""){
+                // додати користувача
+            $user = new User();
+            $user->addCom($this->conn, $auth_id, $rec_id, $text);
+            header('Location: ?controller=users');
+            }
+            
+        
+
+        
+    }
+
  
 }

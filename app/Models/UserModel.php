@@ -97,4 +97,15 @@ class User {
         }
     }
 
+    public static function addCom($conn, $auth_id, $rec_id, $text){
+        $data = date("Y/m/d");
+        $time = date("h:i:sa");
+        $sql = "INSERT INTO comments (auth_id, rec_id, text, data,time)
+            VALUES ('$auth_id', '$rec_id','$text', '$data', '$time')";
+           $res = mysqli_query($conn, $sql);
+           if ($res) {
+               return true;
+           }
+    }
+
 }

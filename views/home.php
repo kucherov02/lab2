@@ -26,7 +26,23 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
     <div class="nav-wrapper">
       <a href="#!" class="brand-logo center">LAB 2</a>
       <ul class="left hide-on-med-and-down">
-        <li><a href="sass.html">Sign In</a></li>
+        <li><a class=" modal-trigger indigo" href="#modal2">Sign In</a>
+        <div id="modal2" class="modal">
+    <div class="modal-content">
+    <form action="?controller=login" method="post">
+           <div class="row">
+               <div class="field">
+                   <label>Email: <input type="email" name="email"></label>
+               </div>
+           </div>
+           <div class="row">
+               <div class="field">
+                   <label>Password: <input type="password" name="password"><br></label>
+               </div>
+           </div>
+           <input type="submit" class="btn darken-4" value="Login">
+       </form>
+     </li>
         <li><a class=" modal-trigger indigo" href="#modal1">Sign Up</a>
         <div id="modal1" class="modal">
     <div class="modal-content">
@@ -46,17 +62,24 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
                 <div class="field">
                 <label>Password: <input type="password" name="password"></label>
             </div>
-           </div>
-           
+           </div> 
            <div class="row">
                <div class="field">
                    <label>E-mail: <input type="email" name="email"><br></label>
                </div>
            </div>
            <div class="row">
-            <div class="field">
-                <label>Role Id: <input type="text" name="role"></label>
-            </div>
+                                <div class="field">
+                                    <div class="input-field">
+                                        <p class="black-text">Role ID</p>
+                                        <select name="role">
+                                          <option value="" disabled selected>Choose your id</option>
+                                          <option value="1">1</option>
+                                          <option value="2">2</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
         </div>
            <div class="row">
                <div class="field">
@@ -83,7 +106,7 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
                    </div>
                </div>
            </div>
-           <input type="submit" class="btn indigo" value="Sign Up">
+           <input type="submit" class="btn darken-4" value="Sign Up">
        </form>
     </div>
   </div>
@@ -98,6 +121,7 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
               <th>First name</th>
               <th>First name</th>
               <th>Email</th>
+              <th>Photo</th>
           </tr>
         </thead>
         <tbody>
@@ -106,19 +130,34 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
                   <td><?=$user['name']?></td>
                   <td><?=$user['secondName']?></td>
                   <td><?=$user['email']?></td>
+                  <
+                  <td><img width="50" height="50" src='<?=$user['path_to_img']?>'/></td>
                   <td><a href="?controller=users&action=delete&id=<?=$user['id']?>">X</a></td>
               </tr>
            <?php endforeach;?>
         </tbody>
       </table>
+      <div>
+
+      </div>
       <script>
           document.addEventListener('DOMContentLoaded', function() {
-        const elems = document.querySelectorAll('.modal');
-        const options = {
+        let elems = document.querySelectorAll('.modal');
+        let options = {
             inDuration: 300
         }
-        const instances = M.Modal.init(elems, options);
+        let  instances = M.Modal.init(elems, options);
     });
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+    let elems = document.querySelectorAll('select');
+    let options = {
+            inDuration: 300
+        }
+    let instances = M.FormSelect.init(elems, options);
+  });
       </script>
 </body>
 </html>
+
