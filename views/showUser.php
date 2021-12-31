@@ -27,6 +27,7 @@
           <span class="card-title">User</span>
         </div>
         <div class="card-content">
+        <?php if(array_key_exists('auth', $_SESSION) && ($_SESSION['id_role'] == 1 || $_SESSION['id'] == $user['id'] ) ) : ?>
         <form action="?controller=users&action=edit&path=<?=$user['path_to_img']?>&role=<?=$user['id_role']?>" method="post" enctype="multipart/form-data">
 <input type="hidden" name="id" value="<?=$user['id']?>" />
         <div class="row">
@@ -36,7 +37,7 @@
         </div>
         <div class="row">
             <div class="field">
-                <label>Last Name: <input type="text" name="name" value="<?=$user['secondName']?>"></label>
+                <label>Last Name: <input type="text" name="sName" value="<?=$user['secondName']?>"></label>
             </div>
         </div>
         <div class="row">
@@ -44,11 +45,6 @@
                    <label>E-mail: <input type="email" name="email" value="<?=$user['email']?>"><br></label>
                </div>
            </div>
-           <div class="row">
-            <div class="field">
-                <label>Role Id <input type="number" name="role" value="<?=$user['id_role']?>"></label>
-            </div>
-        </div>   
         <div class="row">
             <div class="field">
                 <label>
@@ -76,8 +72,34 @@
            </div>
                 <input type="submit" class="btn indigo" value="Edit">
        </form>
-       <br>
-       <form action="?controller=users&action=addCom&rec=<?=$user['id']?>" method="post">
+        <br>
+       <?php else: ?>
+        <form action="?controller=users&action=edit&path=<?=$user['path_to_img']?>&role=<?=$user['id_role']?>" method="post" enctype="multipart/form-data">
+<input type="hidden" name="id" value="<?=$user['id']?>" />
+        <div class="row">
+            <div class="field">
+                <label>Name: <input type="text" readonly="readonly" name="name" value="<?=$user['name']?>"></label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="field">
+                <label>Last Name: <input type="text" readonly="readonly" name="name" value="<?=$user['secondName']?>"></label>
+            </div>
+        </div>
+        <div class="row">
+               <div class="field">
+                   <label>E-mail: <input type="email" readonly="readonly" name="email" value="<?=$user['email']?>"><br></label>
+               </div>
+           </div>
+        <div class="row">
+            <div class="field">
+            <label>Gender: <input type="text" readonly="readonly" name="gender" value="<?=$user['gender']?>"><br></label>
+             </div>
+            </div>
+       </form>
+        <?php endif ?>
+        <?php if(array_key_exists('auth', $_SESSION)) : ?>
+        <form action="?controller=users&action=addCom&recName=<?=$user['name']?>&recSname=<?=$user['secondName']?>&id=<?=$_SESSION['id']?>" method="post">
        <div class="row">
         <div class="input-field col s12">
           <textarea id="textarea1" name ="comment" class="materialize-textarea"></textarea>
@@ -86,6 +108,7 @@
       </div>
       <input type="submit" class="btn indigo" value="Leave">
     </form>
+    <?php endif ?>
   </div>
         <div class="card-action">
         </div>

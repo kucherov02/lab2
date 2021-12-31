@@ -13,6 +13,7 @@ class UsersController
 
        // отримання користувачів
        $users = (new User())::all($this->conn);
+       $comments = (new User())::allCom($this->conn);
 
        include_once 'views/home.php';
    }
@@ -31,6 +32,7 @@ class UsersController
        $gender = filter_input(INPUT_POST, 'gender', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
        
        $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+       $dupPassword = filter_input(INPUT_POST, 'dupPassword', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
        $hash = password_hash($password, PASSWORD_BCRYPT);
 
        $id_role = filter_input(INPUT_POST, 'role', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
@@ -41,13 +43,28 @@ class UsersController
        if (move_uploaded_file($_FILES["photo"]["tmp_name"], $target_file)) {
           $path_to_img = $target_dir . basename($_FILES["photo"]["name"]);
         }
+            
+        if (strcmp($password, $dupPassword) !== 0) {
+            $error = "Typing of different passwords!";
+                $users = (new User())::all($this->conn);
+                include_once 'views/home.php';  
+                return;
+        }
 
-       if (trim($name) !== "" && trim($secondName) !== "" && trim($email) !== "" && trim($gender) !== "" && trim($hash) !== "" && trim($id_role) ) {
-           // додати користувача
-           $user = new User($name,$secondName, $email, $gender,$hash, $path_to_img, $id_role);
-           $user->add($this->conn);
-       }
-       header('Location: ?controller=users');
+        
+            $user = new User($name, $secondName, $email, $gender,$hash, $path_to_img, $id_role);
+            if((new User())::byEmail($this->conn, $email)){
+                $error = "The email already exists!";
+                $users = (new User())::all($this->conn);
+                include_once 'views/home.php';  
+                return;
+            }
+
+
+
+            $user->add($this->conn);
+        
+        header('Location: ?controller=users');
    }
 
    public function delete(){
@@ -67,6 +84,7 @@ include_once 'app/Models/UserModel.php';
 
 $id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
+
 if (trim($id) !== "" && is_numeric($id)) {
   $user = (new User())::byId($this->conn, $id);
 }
@@ -79,9 +97,15 @@ include_once 'views/showUser.php';
        // блок з валідацією
        $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
        $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+       $sName = filter_input(INPUT_POST, 'sName', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
        $gender = filter_input(INPUT_POST, 'gender', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
        $id_role = filter_input(INPUT_POST, 'role', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+       if($id === $_SESSION['id']){
+           $_SESSION['name'] = $name;
+           $_SESSION['secondName'] = $sName;
+       }
        
          $target_dir = 'public/uploads/';
          $target_file = $target_dir . basename($_FILES["photo"]["name"]);
@@ -94,11 +118,10 @@ include_once 'views/showUser.php';
        
        
 
-       if (trim($id) !== "" && is_numeric($id) && trim($name) !== "" && trim($email) !== "" && trim($gender) !== "" && trim($id_role)) {
            // додати користувача
            $user = new User();
-           $user->edit($this->conn, $id,$name,$email,$gender,$path_to_img, $id_role);
-       }
+           $user->edit($this->conn, $id,$name,$sName,$email,$gender,$path_to_img, $id_role);
+       
 
        header('Location: ?controller=users');
     }
@@ -106,21 +129,54 @@ include_once 'views/showUser.php';
     public function addCom(){
         include_once 'app/Models/UserModel.php';
 
-        $auth_id = 36;
-        $rec_id = filter_input(INPUT_GET, 'rec', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $auth_id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $rec_name = filter_input(INPUT_GET, 'recName', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $rec_sName = filter_input(INPUT_GET, 'recSname', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $text = filter_input(INPUT_POST, 'comment', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
-            if(trim($rec_id) !== "" && trim($text) !== ""){
+            if(trim($text) !== ""){
                 // додати користувача
             $user = new User();
-            $user->addCom($this->conn, $auth_id, $rec_id, $text);
-            header('Location: ?controller=users');
-            }
-            
-        
-
-        
+            $user::addCom($this->conn, $auth_id, $rec_name,$rec_sName, $text);
+            } 
+             header('Location: ?controller=users');
     }
+
+    public function editCom(){
+        include_once 'app/Models/UserModel.php';
+
+        $auth_id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $text = filter_input(INPUT_POST, 'comment', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $time = filter_input(INPUT_GET, 'time', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $data = filter_input(INPUT_GET, 'data', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+            if(trim($text) !== ""){
+            $user = new User();
+            $user::editCom($this->conn, $auth_id, $text, $time, $data);
+            $users = (new User())::all($this->conn);
+            $comments = (new User())::allCom($this->conn);
+
+            include_once 'views/home.php';
+            }  
+    }
+
+    public function deleteCom(){
+        include_once 'app/Models/UserModel.php';  
+    
+        $id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $time = filter_input(INPUT_GET, 'time', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $data = filter_input(INPUT_GET, 'data', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+        if (trim($id) !== "" && is_numeric($id)) {
+            (new User())::deleteCom($this->conn, $id, $time, $data);
+        }
+    
+        header('Location: ?controller=users');
+    }
+
+
+
+    
 
  
 }

@@ -1,0 +1,9 @@
+.error{
+    display: flex;
+    color: red;
+}
+
+.name{
+    display: flex;
+    color: rgb(255, 255, 255);
+}

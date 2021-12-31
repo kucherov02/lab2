@@ -42,6 +42,23 @@ class User {
        }
    }
 
+ 
+   public static function allCom($conn) {
+    $sql = "SELECT users.name, users.secondName, users.path_to_img, comments.auth_id, comments.rec_name, comments.rec_sName, comments.text, comments.data, comments.time FROM users JOIN comments ON users.id = auth_id";
+    $result = $conn->query($sql); //виконання запиту
+    if ($result->num_rows > 0) {
+        $arr = [];
+        while ( $db_field = $result->fetch_assoc() ) {
+            $arr[] = $db_field;
+        } 
+        return $arr;
+    } else {
+        return [];
+    }
+}
+
+   
+
 
 
    public static function delete($conn, $id) {
@@ -51,6 +68,14 @@ class User {
         return true;
     }
     }
+
+    public static function deleteCom($conn, $id, $time, $data) {
+        $sql = "DELETE FROM comments WHERE auth_id=$id AND time='$time' AND data='$data'";
+        $res = mysqli_query($conn, $sql);
+        if ($res) {
+            return true;
+        }
+        }
 
     public static function byId($conn, $id) {
 
@@ -71,11 +96,11 @@ class User {
         
     }
 
-    public static function edit($conn, $id,$name,$email,$gender,$path_to_img, $id_role){
+    public static function edit($conn, $id,$name,$sName,$email,$gender,$path_to_img, $id_role){
         if($path_to_img !== ''){
-            $sql = "UPDATE users SET email= '$email', name='$name', gender='$gender', path_to_img='$path_to_img', id_role='$id_role' WHERE id=$id";
+            $sql = "UPDATE users SET email= '$email', name='$name', secondName='$sName', gender='$gender', path_to_img='$path_to_img', id_role='$id_role' WHERE id=$id";
         }else{
-            $sql = "UPDATE users SET email= '$email', name='$name', gender='$gender', id_role='$id_role' WHERE id=$id";
+            $sql = "UPDATE users SET email= '$email', name='$name', secondName='$sName', gender='$gender', id_role='$id_role' WHERE id=$id";
         }
         
            $res = mysqli_query($conn, $sql);
@@ -87,25 +112,52 @@ class User {
     public static function auth($conn, $email, $password) {
 
         $users = self::all($conn);
-        $sql = "SELECT * FROM users";
-        $result = $conn->query($sql);
-        foreach ($users as $user) {
-            if ($user['email'] == $email && $user['password'] == $password) {
-                $_SESSION['auth'] = true;
-                return;
+        
+            foreach ($users as $user) {
+                if ($user['email'] == $email && password_verify($password, $user['password']) == true){
+                    return $user;
+                }
             }
-        }
+        
     }
 
-    public static function addCom($conn, $auth_id, $rec_id, $text){
+    public static function addCom($conn, $auth_id, $rec_name,$rec_sName, $text){
         $data = date("Y/m/d");
         $time = date("h:i:sa");
-        $sql = "INSERT INTO comments (auth_id, rec_id, text, data,time)
-            VALUES ('$auth_id', '$rec_id','$text', '$data', '$time')";
+        $sql = "INSERT INTO comments (auth_id, rec_name,rec_sName, text, data,time)
+            VALUES ('$auth_id', '$rec_name','$rec_sName','$text', '$data', '$time')";
            $res = mysqli_query($conn, $sql);
            if ($res) {
                return true;
            }
     }
+
+    public static function byEmail($conn, $email) {
+
+        $sql = "SELECT email FROM users WHERE email='$email'";
+        $result = $conn->query($sql);  
+
+        
+        if ($result->num_rows > 0) {
+            return true;
+        }else{
+            return false;
+        } 
+        
+    }
+
+    public static function editCom($conn, $auth_id, $text, $time, $data){
+      
+           $sql = "UPDATE comments SET text='$text' WHERE auth_id=$auth_id AND time='$time' AND data='$data'";
+        
+           $res = mysqli_query($conn, $sql);
+           if ($res) {
+               return true;
+           }
+    }
+
+    
+
+
 
 }

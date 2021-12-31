@@ -1,13 +1,3 @@
-<?php 
-
-
-$isLogined = false;
-
-if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
-   $isLogined = true;
-}
-
-?>
 
 <!doctype html>
 <html lang="en">
@@ -19,28 +9,37 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <!-- Compiled and minified JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>       
+    <script src="/assets/js/home.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>  
+     
+    <link rel="stylesheet" href="assets\css\style.css">   
 </head>
 <body>
 <nav class="indigo">
     <div class="nav-wrapper">
-      <a href="#!" class="brand-logo center">LAB 2</a>
+      <div class="brand-logo center">LAB 2</div>
+      <ul id="nav-mobile" class="right hide-on-med-and-down">
+      <li><input class="form-control" type="text" placeholder="Search" id="search-text" onkeyup="tableSearch()"></li>
+      <li><button class="btn waves-effect   indigo lighten-1" id="reset" type="submit" name="action">Reset</button></li>
+      
+      </ul>
       <ul class="left hide-on-med-and-down">
+      <?php if(!array_key_exists('auth', $_SESSION)) : ?>
         <li><a class=" modal-trigger indigo" href="#modal2">Sign In</a>
         <div id="modal2" class="modal">
     <div class="modal-content">
-    <form action="?controller=login" method="post">
+    <form action="?controller=login&action=login" method="post">
            <div class="row">
                <div class="field">
-                   <label>Email: <input type="email" name="email"></label>
+                   <label>Email: <input type="email" name="email" required></label>
                </div>
            </div>
            <div class="row">
                <div class="field">
-                   <label>Password: <input type="password" name="password"><br></label>
+                   <label>Password: <input type="password" name="password" required><br></label>
                </div>
            </div>
-           <input type="submit" class="btn darken-4" value="Login">
+           <input type="submit" class="btn indigo" value="Login" required>
        </form>
      </li>
         <li><a class=" modal-trigger indigo" href="#modal1">Sign Up</a>
@@ -50,22 +49,27 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
        <form action="?controller=users&action=add" method="post" enctype="multipart/form-data">
            <div class="row">
                <div class="field">
-                   <label>First name: <input type="text" name="name"></label>
+                   <label>First name: <input type="text" name="name" required></label>
                </div>
            </div>
            <div class="row">
                <div class="field">
-                   <label>Second name: <input type="text" name="secondName"></label>
+                   <label>Second name: <input type="text" name="secondName" required></label>
                </div>
            </div>
            <div class="row">
                 <div class="field">
-                <label>Password: <input type="password" name="password"></label>
+                <label>Password: <input type="password" minlength="8" name="password" required></label>
+            </div>
+           </div> 
+           <div class="row">
+                <div class="field">
+                <label>Password: <input type="password" minlength="8" name="dupPassword" required></label>
             </div>
            </div> 
            <div class="row">
                <div class="field">
-                   <label>E-mail: <input type="email" name="email"><br></label>
+                   <label>E-mail: <input type="email" name="email" required><br></label>
                </div>
            </div>
            <div class="row">
@@ -74,8 +78,8 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
                                         <p class="black-text">Role ID</p>
                                         <select name="role">
                                           <option value="" disabled selected>Choose your id</option>
-                                          <option value="1">1</option>
-                                          <option value="2">2</option>
+                                          <option value="0">User</option>
+                                          <option value="1">Admin</option>
                                         </select>
                                     </div>
                                 </div>
@@ -106,20 +110,34 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
                    </div>
                </div>
            </div>
-           <input type="submit" class="btn darken-4" value="Sign Up">
+           <input type="submit" class="btn indigo" value="Sign Up">
        </form>
     </div>
   </div>
     </li>
+    <?php else :?>
+                <li><?=$_SESSION['name'] . ' ' . $_SESSION['secondName']?></li>
+                <li> | </li>
+                <li><a href="?controller=logout&action=logout">Logout</a></li>
+     <?php endif;?>
       </ul>
     </div>
   </nav>
-  <table class="striped">
+  <div class = "error">
+<div class ="row">
+  <div class="field">
+  <?php if (isset($error)): ?>
+    <?= $error ?>
+    <?php endif ?>
+  </div>
+  </div>
+  </div>
+  <table class="striped" id="info-table">
         <thead>
           <tr>
               <th>#</th>
               <th>First name</th>
-              <th>First name</th>
+              <th>Second name</th>
               <th>Email</th>
               <th>Photo</th>
           </tr>
@@ -130,34 +148,43 @@ if (isset($_SESSION['auth']) && $_SESSION['auth'] === true) {
                   <td><?=$user['name']?></td>
                   <td><?=$user['secondName']?></td>
                   <td><?=$user['email']?></td>
-                  <
                   <td><img width="50" height="50" src='<?=$user['path_to_img']?>'/></td>
+                  <?php if(array_key_exists('auth', $_SESSION) && ($_SESSION['id_role'] == 1 || $_SESSION['id'] == $user['id'] ) ) : ?>
                   <td><a href="?controller=users&action=delete&id=<?=$user['id']?>">X</a></td>
+                  <?php endif;?>
               </tr>
            <?php endforeach;?>
         </tbody>
       </table>
       <div>
-
       </div>
-      <script>
-          document.addEventListener('DOMContentLoaded', function() {
-        let elems = document.querySelectorAll('.modal');
-        let options = {
-            inDuration: 300
-        }
-        let  instances = M.Modal.init(elems, options);
-    });
-
-
-    document.addEventListener('DOMContentLoaded', function() {
-    let elems = document.querySelectorAll('select');
-    let options = {
-            inDuration: 300
-        }
-    let instances = M.FormSelect.init(elems, options);
-  });
-      </script>
+   <?php foreach ($comments as $comment):?>   
+    <div class="row">
+    <div class="col s12 m6">
+      <div class="card indigo">
+        <div class="card-content white-text">
+          <span class="card-title"> <?=$comment['name']?> <?=$comment['secondName']?> to <?=$comment['rec_name']?> <?=$comment['rec_sName']?></span>
+          <p><?=$comment['data']?> | <?=$comment['time']?></p>
+          <?php if(array_key_exists('auth', $_SESSION) && ($_SESSION['id_role'] == 1 || $_SESSION['id'] == $comment['auth_id'] ) ) : ?>
+            <form action="?controller=users&action=editCom&id=<?=$comment['auth_id']?>&time=<?=$comment['time']?>&data=<?=$comment['data']?>" method="POST">
+       <div class="row">
+        <div class="input-field col s12">
+          <textarea id="textarea1" name ="comment" class="materialize-textarea"></textarea>
+          <label for="textarea1">Edit</label>
+        </div>
+      </div>
+      <input type="submit" class="btn indigo" value="Edit">
+    </form>
+    <br>
+    <td><a href="?controller=users&action=deleteCom&id=<?=$comment['auth_id']?>&time=<?=$comment['time']?>&data=<?=$comment['data']?>">X</a></td>
+      <?php endif;?>
+          <p><?=$comment['text']?></p>
+        </div>
+      </div>
+    </div>
+  </div>
+    <?php endforeach;?> 
+  <script src="./assets/js/home.js"></script>
 </body>
 </html>
 
